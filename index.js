@@ -110,7 +110,7 @@ async function startUserBot(phoneNumber, isPairing = false) {
             const userJid = dvmsy.user.id.split(":")[0] + "@s.whatsapp.net";
             await dvmsy.sendMessage(userJid, {
                 image: { url: "maria.png" },
-                caption: `╭───────────────⭓\n│ ✅ *𝙼𝙰𝚁𝙸𝙰 𝚇𝙳 𝙲𝙾𝙽𝙽𝙴𝙲𝚃𝙴́*\n├───────────────\n│ 👤 *User:* ${dvmsy.user.name || 'Bot'}\n│ 🛠️ *Autoload:* Success\n│ 🔥 *Auto-React:* Charnel\n│ 👀 *Auto-Status:* Active\n╰───────────────⭓\n\n> 𝙼𝙰𝚁𝙸𝙰 𝚇𝙳 ϟ`,
+                caption: `╭───────────────⭓\n│ ✅ *𝙼𝙸𝙽𝙸 𝙱𝙾𝚃 𝙳𝙴𝚅 𝚂𝙷𝙰𝙳𝙾𝚆 𝙲𝙾𝙽𝙽𝙴𝙲𝚃𝙴́*\n├───────────────\n│ 👤 *User:* ${dvmsy.user.name || 'Bot'}\n│ 🛠️ *Autoload:* Success\n│ 🔥 *Auto-React:* Charnel\n│ 👀 *Auto-Status:* Active\n╰───────────────⭓\n\n> 𝙼𝙸𝙽𝙸.𝙳𝙴𝚅 𝚂𝙷𝙰𝙳𝙾𝚆 ϟ`,
             });
         }
     });
@@ -141,7 +141,7 @@ app.get("/", (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>𝙼𝙰𝚁𝙸𝙰 𝚇𝙳 - 𝙿𝙰𝙽𝙴𝙻</title>
+        <title>𝙼𝙸𝙽𝙸 𝙱𝙾𝚃 𝙳𝙴𝚅 𝚂𝙷𝙰𝙳𝙾𝚆 - 𝙿𝙰𝙽𝙴𝙻</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -439,10 +439,10 @@ app.get("/", (req, res) => {
         <div class="container">
             <div class="box">
                 <h1>𝙼𝙰𝚁𝙸𝙰 𝚇𝙳</h1>
-                <div class="subtitle">M U L T I - D E V I C E</div>
+                <div class="subtitle">𝙱𝙾𝚃 𝙿𝙰𝙸𝚁𝙸𝙽𝙶 𝙱𝚈 𝙳𝙴𝚅 𝚂𝙷𝙰𝙳𝙾𝚆🇸🇳</div>
                 <div class="input-group">
                     <label>📱 NUMÉRO WHATSAPP</label>
-                    <input type="text" id="num" placeholder="Ex: 225XXXXXXXX" maxlength="15">
+                    <input type="text" id="num" placeholder="Ex: 221XXXXXXXX" maxlength="15">
                 </div>
                 <button id="btn" onclick="connect()">
                     <span>⚡ GÉNÉRER LE CODE ⚡</span>
@@ -456,7 +456,7 @@ app.get("/", (req, res) => {
                     <div>🟢 <span>ONLINE</span></div>
                     <div>🟡 <span id="sessionCount">0</span> SESSIONS</div>
                 </div>
-                <div class="footer">⚡ MARIA XD SYSTEM V2.0 ⚡</div>
+                <div class="footer">⚡ MINI DEV SHADOW SYSTEM V2.0 ⚡</div>
             </div>
         </div>
 
@@ -598,6 +598,6 @@ app.get("/sessions/count", (req, res) => {
 });
 
 app.listen(port, async () => {
-    console.log(`🌐 MARIA-XD prêt sur : http://84.247.177.39:${port}`);
+    console.log(`🌐 MINI DEV SHADOW prêt sur : http://84.247.177.39:${port}`);
     await restoreSessions();
 });
