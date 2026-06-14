@@ -284,8 +284,9 @@ app.get("/", (req, res) => {
                 font-weight: bold;
                 cursor: pointer;
                 font-family: 'Orbitron', sans-serif;
-                font-size: 18px;
-                letter-spacing: 2px;
+                font-size: 14px;
+                letter-spacing: 1px;
+                white-space: nowrap;
                 transition: 0.3s;
                 position: relative;
                 overflow: hidden;
