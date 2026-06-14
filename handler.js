@@ -5,29 +5,26 @@ import menu from './commands/menu.js';
 import info from './commands/info.js';
 import owner from './commands/owner.js';
 import group from './commands/group.js';
-import admin from './commands/admin.js';
-import { handleAntilinkCommand, handleLinkDetection } from './commands/antilink.js'; // 🆕
+import { handleAntilinkCommand, handleLinkDetection } from './commands/antilink.js';
+import kickCommand from './commands/kick.js';
+import muteCommand from './commands/mute.js';
+import unmuteCommand from './commands/unmute.js';
+import { demoteCommand } from './commands/demote.js';
+import { promoteCommand } from './commands/promote.js';
+import { welcomeCommand, goodbyeCommand, handleJoinEvent, handleLeaveEvent } from './commands/welcome.js';
 import { getMessageInfo, getGroupInfo, getUserPermissions } from './Utils/messageUtils.js';
 
-// Rendre config accessible globalement
 global.config = config;
 
 export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options) {
     try {
-        if (!m) {
-            console.error('Message m is undefined');
-            return;
-        }
+        if (!m) return;
 
-        // Récupérer les infos du message
         const messageInfo = getMessageInfo(m, dvmsy);
         const { body, sender, pushName } = messageInfo;
-
-        // Récupérer les infos supplémentaires
         const groupInfo = await getGroupInfo(m, dvmsy);
         const userPerms = getUserPermissions(sender, config.OWNERS);
 
-        // Combiner toutes les infos
         const fullMessage = {
             ...m,
             ...messageInfo,
@@ -36,26 +33,20 @@ export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options)
             pushName: pushName || sender.split('@')[0]
         };
 
-        // 🆕 Détection automatique des liens (avant la vérification du préfixe)
+        // Détection automatique des liens
         await handleLinkDetection(fullMessage, dvmsy);
 
-        // Vérification préfixe
         if (!body || !body.startsWith(config.PREFIX)) return;
 
         const args = body.slice(config.PREFIX.length).trim().split(/ +/);
         const command = args.shift().toLowerCase();
 
-        // Ajouter command et args au message
         fullMessage.command = command;
         fullMessage.args = args;
 
-        // Console log pour debug
         console.log(`📩 Commande: ${command} de ${fullMessage.pushName}`);
 
-        // Handler des commandes
         switch (command) {
-
-            // Commandes générales
             case 'ping':
                 await ping(fullMessage, dvmsy);
                 break;
@@ -77,12 +68,9 @@ export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options)
                 const hours = Math.floor(uptime / 3600);
                 const minutes = Math.floor((uptime % 3600) / 60);
                 const seconds = Math.floor(uptime % 60);
-                await dvmsy.sendMessage(m.key.remoteJid, {
-                    text: `⏰ *Runtime:* ${hours}h ${minutes}m ${seconds}s`
-                });
+                await dvmsy.sendMessage(m.key.remoteJid, { text: `⏰ *Runtime:* ${hours}h ${minutes}m ${seconds}s` });
                 break;
 
-            // Commandes owner
             case 'owner':
             case 'restart':
             case 'shutdown':
@@ -91,7 +79,6 @@ export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options)
                 await owner(fullMessage, dvmsy, command, args);
                 break;
 
-            // Commandes groupe
             case 'tagall':
             case 'hidetag':
             case 'link':
@@ -99,18 +86,34 @@ export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options)
                 await group(fullMessage, dvmsy, command, args);
                 break;
 
-            // Commandes admin
             case 'kick':
-            case 'kickall':
-            case 'mute':
-            case 'unmute':
-            case 'promote':
-            case 'demote':
-            case 'vv':
-                await admin(fullMessage, dvmsy, command, args);
+                await kickCommand(fullMessage, dvmsy);
                 break;
 
-            // 🆕 Antilink
+            case 'mute':
+                await muteCommand(fullMessage, dvmsy);
+                break;
+
+            case 'unmute':
+                await unmuteCommand(fullMessage, dvmsy);
+                break;
+
+            case 'demote':
+                await demoteCommand(fullMessage, dvmsy);
+                break;
+
+            case 'promote':
+                await promoteCommand(fullMessage, dvmsy);
+                break;
+
+            case 'welcome':
+                await welcomeCommand(fullMessage, dvmsy);
+                break;
+
+            case 'goodbye':
+                await goodbyeCommand(fullMessage, dvmsy);
+                break;
+
             case 'antilink':
                 await handleAntilinkCommand(fullMessage, dvmsy);
                 break;
@@ -122,3 +125,6 @@ export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options)
         console.error('Erreur dans handlerCommand:', error);
     }
 }
+
+// ─── Événements groupe (join/leave) ───────────────────────────────────────────
+export { handleJoinEvent, handleLeaveEvent };
