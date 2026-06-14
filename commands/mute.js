@@ -1,0 +1,40 @@
+// commands/mute.js
+export default async function muteCommand(m, dvmsy) {
+    const sock = dvmsy;
+    const chatId = m.key.remoteJid;
+    const message = m;
+    const durationInMinutes = m.args?.[0] ? parseInt(m.args[0]) : undefined;
+
+    if (!m.isBotAdmin) {
+        await sock.sendMessage(chatId, { text: 'Please make the bot an admin first.' }, { quoted: message });
+        return;
+    }
+
+    if (!m.isGroupAdmin && !m.isOwner) {
+        await sock.sendMessage(chatId, { text: 'Only group admins can use the mute command.' }, { quoted: message });
+        return;
+    }
+
+    try {
+        await sock.groupSettingUpdate(chatId, 'announcement');
+        
+        if (durationInMinutes !== undefined && durationInMinutes > 0) {
+            const durationInMilliseconds = durationInMinutes * 60 * 1000;
+            await sock.sendMessage(chatId, { text: `The group has been muted for ${durationInMinutes} minutes.` }, { quoted: message });
+            
+            setTimeout(async () => {
+                try {
+                    await sock.groupSettingUpdate(chatId, 'not_announcement');
+                    await sock.sendMessage(chatId, { text: 'The group has been unmuted.' });
+                } catch (unmuteError) {
+                    console.error('Error unmuting group:', unmuteError);
+                }
+            }, durationInMilliseconds);
+        } else {
+            await sock.sendMessage(chatId, { text: 'The group has been muted.' }, { quoted: message });
+        }
+    } catch (error) {
+        console.error('Error muting/unmuting the group:', error);
+        await sock.sendMessage(chatId, { text: 'An error occurred while muting/unmuting the group. Please try again.' }, { quoted: message });
+    }
+}
