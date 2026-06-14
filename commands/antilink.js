@@ -1,10 +1,9 @@
 // commands/antilink.js
-// Stockage en mémoire des configurations antilink par groupe
+// Stockage en mémoire (remplace lib/index.js et lib/antilink.js)
 const antilinkStore = {};
 
-// ─── Helpers de stockage ─────────────────────────────────────────────────────
-function setAntilink(chatId, action = 'delete') {
-    antilinkStore[chatId] = { enabled: true, action };
+function setAntilink(chatId, status, action) {
+    antilinkStore[chatId] = { enabled: status === 'on', action };
     return true;
 }
 
@@ -17,211 +16,143 @@ function removeAntilink(chatId) {
     return true;
 }
 
-// ─── Patterns de liens ────────────────────────────────────────────────────────
-const linkPatterns = {
-    whatsappGroup: /chat\.whatsapp\.com\/[A-Za-z0-9]{20,}/i,
-    whatsappChannel: /wa\.me\/channel\/[A-Za-z0-9]{20,}/i,
-    telegram: /t\.me\/[A-Za-z0-9_]+/i,
-    allLinks: /https?:\/\/\S+|www\.\S+|(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/\S*)?/i,
-};
-
-// ─── COMMANDE ANTILINK ────────────────────────────────────────────────────────
 export async function handleAntilinkCommand(m, dvmsy) {
-    const prefix = global.config?.PREFIX || '👾';
+    const sock = dvmsy;
     const chatId = m.key.remoteJid;
+    const userMessage = m.body || '';
+    const senderId = m.sender;
+    const isSenderAdmin = m.isGroupAdmin || m.isOwner;
+    const message = m;
 
-    // Vérification groupe
-    if (!m.isGroup) {
-        return dvmsy.sendMessage(chatId, {
-            text: '❌ *Cette commande est uniquement disponible en groupe !*'
-        }, { quoted: m });
-    }
-
-    // Vérification admin
-    if (!m.isGroupAdmin && !m.isOwner) {
-        return dvmsy.sendMessage(chatId, {
-            text: '❌ *Seuls les administrateurs peuvent utiliser cette commande !*'
-        }, { quoted: m });
-    }
-
-    const args = m.args || [];
-    const action = args[0]?.toLowerCase();
-
-    // Afficher l'aide si pas d'argument
-    if (!action) {
-        return dvmsy.sendMessage(chatId, {
-            text: `╭───────────────⭓
-│ *🛡️ ANTILINK SETUP*
-├───────────────
-│
-│ *Activer:*
-│ ${prefix}antilink on
-│
-│ *Définir l'action:*
-│ ${prefix}antilink set delete
-│ ${prefix}antilink set kick
-│ ${prefix}antilink set warn
-│
-│ *Statut:*
-│ ${prefix}antilink status
-│
-│ *Désactiver:*
-│ ${prefix}antilink off
-│
-╰───────────────⭓`
-        }, { quoted: m });
-    }
-
-    switch (action) {
-
-        case 'on': {
-            const existing = getAntilink(chatId);
-            if (existing?.enabled) {
-                return dvmsy.sendMessage(chatId, {
-                    text: '⚠️ *L\'antilink est déjà activé !*'
-                }, { quoted: m });
-            }
-            setAntilink(chatId, 'delete');
-            await dvmsy.sendMessage(chatId, {
-                text: '✅ *Antilink activé !*\n\n🗑️ Action par défaut : *suppression*\nUtilisez `' + prefix + 'antilink set` pour changer l\'action.'
-            }, { quoted: m });
-            break;
+    try {
+        if (!isSenderAdmin) {
+            await sock.sendMessage(chatId, { text: '```For Group Admins Only!```' }, { quoted: message });
+            return;
         }
 
-        case 'off': {
-            removeAntilink(chatId);
-            await dvmsy.sendMessage(chatId, {
-                text: '🔴 *Antilink désactivé !*'
-            }, { quoted: m });
-            break;
+        const prefix = global.config?.PREFIX || '👾';
+        const args = m.args || [];
+        const action = args[0]?.toLowerCase();
+
+        if (!action) {
+            const usage = `\`\`\`ANTILINK SETUP\n\n${prefix}antilink on\n${prefix}antilink set delete | kick | warn\n${prefix}antilink off\n\`\`\``;
+            await sock.sendMessage(chatId, { text: usage }, { quoted: message });
+            return;
         }
 
-        case 'set': {
-            const setAction = args[1]?.toLowerCase();
-            if (!setAction || !['delete', 'kick', 'warn'].includes(setAction)) {
-                return dvmsy.sendMessage(chatId, {
-                    text: `❌ *Action invalide !*\n\nChoisissez : *delete*, *kick* ou *warn*\n\nEx: ${prefix}antilink set delete`
-                }, { quoted: m });
-            }
+        switch (action) {
+            case 'on':
+                const existingConfig = getAntilink(chatId);
+                if (existingConfig?.enabled) {
+                    await sock.sendMessage(chatId, { text: '*_Antilink is already on_*' }, { quoted: message });
+                    return;
+                }
+                const result = setAntilink(chatId, 'on', 'delete');
+                await sock.sendMessage(chatId, {
+                    text: result ? '*_Antilink has been turned ON_*' : '*_Failed to turn on Antilink_*'
+                }, { quoted: message });
+                break;
 
-            const existing = getAntilink(chatId);
-            if (!existing?.enabled) {
-                return dvmsy.sendMessage(chatId, {
-                    text: `⚠️ *Activez d'abord l'antilink !*\n\nEx: ${prefix}antilink on`
-                }, { quoted: m });
-            }
+            case 'off':
+                removeAntilink(chatId);
+                await sock.sendMessage(chatId, { text: '*_Antilink has been turned OFF_*' }, { quoted: message });
+                break;
 
-            setAntilink(chatId, setAction);
+            case 'set':
+                if (args.length < 2) {
+                    await sock.sendMessage(chatId, {
+                        text: `*_Please specify an action: ${prefix}antilink set delete | kick | warn_*`
+                    }, { quoted: message });
+                    return;
+                }
+                const setAction = args[1]?.toLowerCase();
+                if (!['delete', 'kick', 'warn'].includes(setAction)) {
+                    await sock.sendMessage(chatId, {
+                        text: '*_Invalid action. Choose delete, kick, or warn._*'
+                    }, { quoted: message });
+                    return;
+                }
+                const setResult = setAntilink(chatId, 'on', setAction);
+                await sock.sendMessage(chatId, {
+                    text: setResult ? `*_Antilink action set to ${setAction}_*` : '*_Failed to set Antilink action_*'
+                }, { quoted: message });
+                break;
 
-            const actionLabels = {
-                delete: '🗑️ Suppression du message',
-                kick: '👢 Expulsion du membre',
-                warn: '⚠️ Avertissement'
-            };
+            case 'get':
+                const status = getAntilink(chatId);
+                await sock.sendMessage(chatId, {
+                    text: `*_Antilink Configuration:_*\nStatus: ${status?.enabled ? 'ON' : 'OFF'}\nAction: ${status ? status.action : 'Not set'}`
+                }, { quoted: message });
+                break;
 
-            await dvmsy.sendMessage(chatId, {
-                text: `✅ *Action antilink définie sur : ${actionLabels[setAction]}*`
-            }, { quoted: m });
-            break;
+            default:
+                await sock.sendMessage(chatId, { text: `*_Use ${global.config?.PREFIX || '👾'}antilink for usage._*` }, { quoted: message });
         }
-
-        case 'status': {
-            const config = getAntilink(chatId);
-            const actionLabels = {
-                delete: '🗑️ Suppression',
-                kick: '👢 Expulsion',
-                warn: '⚠️ Avertissement'
-            };
-            await dvmsy.sendMessage(chatId, {
-                text: `╭───────────────⭓
-│ *🛡️ STATUT ANTILINK*
-├───────────────
-│ Status: ${config?.enabled ? '✅ Activé' : '🔴 Désactivé'}
-│ Action: ${config ? actionLabels[config.action] || config.action : 'Non définie'}
-╰───────────────⭓`
-            }, { quoted: m });
-            break;
-        }
-
-        default:
-            await dvmsy.sendMessage(chatId, {
-                text: `❌ *Option inconnue !*\n\nUtilisez ${prefix}antilink pour voir l'aide.`
-            }, { quoted: m });
+    } catch (error) {
+        console.error('Error in antilink command:', error);
+        await sock.sendMessage(chatId, { text: '*_Error processing antilink command_*' }, { quoted: message });
     }
 }
 
-// ─── DÉTECTION DE LIENS ───────────────────────────────────────────────────────
 export async function handleLinkDetection(m, dvmsy) {
+    const sock = dvmsy;
     const chatId = m.key.remoteJid;
     if (!chatId?.endsWith('@g.us')) return;
 
-    const config = getAntilink(chatId);
-    if (!config?.enabled) return;
-
-    const userMessage = m.body || '';
-    const senderId = m.sender;
+    const antilinkSetting = getAntilink(chatId);
+    if (!antilinkSetting?.enabled) return;
 
     // Ignorer les admins et owners
     if (m.isGroupAdmin || m.isOwner) return;
 
-    // Vérifier si le message contient un lien
-    const hasLink = linkPatterns.allLinks.test(userMessage);
-    if (!hasLink) return;
+    const userMessage = m.body || '';
+    const senderId = m.sender;
+    const message = m;
 
-    console.log(`🔗 Lien détecté de ${senderId} dans ${chatId} - Action: ${config.action}`);
+    const linkPatterns = {
+        whatsappGroup: /chat\.whatsapp\.com\/[A-Za-z0-9]{20,}/i,
+        whatsappChannel: /wa\.me\/channel\/[A-Za-z0-9]{20,}/i,
+        telegram: /t\.me\/[A-Za-z0-9_]+/i,
+        allLinks: /https?:\/\/\S+|www\.\S+|(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/\S*)?/i,
+    };
 
-    switch (config.action) {
+    let shouldDelete = false;
+    const action = antilinkSetting.action;
 
-        case 'delete': {
-            // Supprimer le message
-            try {
-                await dvmsy.sendMessage(chatId, {
-                    delete: {
-                        remoteJid: chatId,
-                        fromMe: false,
-                        id: m.key.id,
-                        participant: senderId
-                    }
-                });
-            } catch (e) {
-                console.error('Erreur suppression:', e);
-            }
-            await dvmsy.sendMessage(chatId, {
-                text: `⚠️ @${senderId.split('@')[0]}, les liens sont interdits dans ce groupe !`,
-                mentions: [senderId]
+    if (action === 'whatsappGroup' && linkPatterns.whatsappGroup.test(userMessage)) {
+        shouldDelete = true;
+    } else if (action === 'whatsappChannel' && linkPatterns.whatsappChannel.test(userMessage)) {
+        shouldDelete = true;
+    } else if (action === 'telegram' && linkPatterns.telegram.test(userMessage)) {
+        shouldDelete = true;
+    } else if (['delete', 'kick', 'warn'].includes(action) && linkPatterns.allLinks.test(userMessage)) {
+        shouldDelete = true;
+    }
+
+    if (shouldDelete) {
+        const quotedMessageId = message.key.id;
+        const quotedParticipant = message.key.participant || senderId;
+
+        try {
+            await sock.sendMessage(chatId, {
+                delete: { remoteJid: chatId, fromMe: false, id: quotedMessageId, participant: quotedParticipant },
             });
-            break;
+        } catch (error) {
+            console.error('Failed to delete message:', error);
         }
 
-        case 'kick': {
-            // Supprimer le message puis expulser
-            try {
-                await dvmsy.sendMessage(chatId, {
-                    delete: {
-                        remoteJid: chatId,
-                        fromMe: false,
-                        id: m.key.id,
-                        participant: senderId
-                    }
-                });
-            } catch (e) {
-                console.error('Erreur suppression:', e);
-            }
-            await dvmsy.sendMessage(chatId, {
+        if (action === 'kick') {
+            await sock.sendMessage(chatId, {
                 text: `👢 @${senderId.split('@')[0]} a été expulsé pour avoir envoyé un lien !`,
                 mentions: [senderId]
             });
-            await dvmsy.groupParticipantsUpdate(chatId, [senderId], 'remove');
-            break;
-        }
-
-        case 'warn': {
-            // Juste avertir
-            await dvmsy.sendMessage(chatId, {
-                text: `⚠️ *Avertissement !*\n\n@${senderId.split('@')[0]}, les liens sont interdits dans ce groupe !`,
-                mentions: [senderId]
+            await sock.groupParticipantsUpdate(chatId, [senderId], 'remove');
+        } else {
+            const mentionedJidList = [senderId];
+            await sock.sendMessage(chatId, {
+                text: `Warning! @${senderId.split('@')[0]}, posting links is not allowed.`,
+                mentions: mentionedJidList
             });
-            break;
         }
     }
 }
