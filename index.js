@@ -141,15 +141,15 @@ app.get("/", (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>𝙼𝙸𝙽𝙸 𝙱𝙾𝚃 𝙳𝙴𝚅 𝚂𝙷𝙰𝙳𝙾𝚆 - 𝙿𝙰𝙽𝙴𝙻</title>
+        <title>MINI BOT DEV SHADOW - PANEL</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
             * { margin: 0; padding: 0; box-sizing: border-box; }
 
             body {
-                background: #0a0800;
-                color: #ffd700;
-                font-family: 'Rajdhani', sans-serif;
+                background: #f0f4f0;
+                font-family: 'Poppins', sans-serif;
                 min-height: 100vh;
                 display: flex;
                 justify-content: center;
@@ -158,367 +158,281 @@ app.get("/", (req, res) => {
                 overflow: hidden;
             }
 
-            /* ── CANVAS HACKER ── */
-            #hackerCanvas {
+            /* Fond drapeau Sénégal */
+            .bg-flag {
                 position: fixed;
                 top: 0; left: 0;
                 width: 100%; height: 100%;
+                display: flex;
                 z-index: 0;
-                opacity: 0.35;
             }
+            .bg-flag .stripe {
+                flex: 1;
+                opacity: 0.15;
+            }
+            .bg-flag .stripe.green  { background: #00853F; }
+            .bg-flag .stripe.yellow { background: #FDEF42; }
+            .bg-flag .stripe.red    { background: #E31B23; }
 
             .container {
                 position: relative;
                 z-index: 1;
                 width: 100%;
-                max-width: 500px;
+                max-width: 460px;
                 padding: 20px;
             }
 
             .box {
-                background: rgba(10, 8, 0, 0.92);
-                border: 3px solid #ffd700;
-                border-radius: 30px;
+                background: #ffffff;
+                border-radius: 24px;
                 padding: 40px 30px;
                 text-align: center;
-                backdrop-filter: blur(12px);
-                box-shadow:
-                    0 0 60px rgba(255, 215, 0, 0.25),
-                    inset 0 0 30px rgba(255, 215, 0, 0.08);
-                position: relative;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+                border-top: 6px solid #00853F;
+            }
+
+            /* Bande tricolore en haut */
+            .tricolor {
+                display: flex;
+                height: 6px;
+                border-radius: 10px;
                 overflow: hidden;
+                margin-bottom: 25px;
             }
-
-            .box::before {
-                content: '';
-                position: absolute;
-                top: -50%; left: -50%;
-                width: 200%; height: 200%;
-                background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.07), transparent);
-                transform: rotate(45deg);
-                animation: shine 4s infinite;
-            }
-
-            @keyframes shine {
-                0% { transform: translateX(-100%) rotate(45deg); }
-                100% { transform: translateX(100%) rotate(45deg); }
-            }
+            .tricolor div { flex: 1; }
+            .tricolor .g { background: #00853F; }
+            .tricolor .y { background: #FDEF42; }
+            .tricolor .r { background: #E31B23; }
 
             h1 {
-                font-family: 'Orbitron', sans-serif;
-                color: #ffd700;
-                text-shadow: 0 0 20px #ffd700, 0 0 50px #b8860b;
-                font-size: 42px;
-                margin-bottom: 10px;
-                letter-spacing: 4px;
-                position: relative;
-                display: inline-block;
-                animation: goldPulse 2s infinite;
+                font-size: 32px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin-bottom: 5px;
+                letter-spacing: 2px;
             }
 
-            @keyframes goldPulse {
-                0%, 100% { text-shadow: 0 0 20px #ffd700, 0 0 50px #b8860b; }
-                50% { text-shadow: 0 0 40px #ffd700, 0 0 80px #daa520, 0 0 100px #b8860b; }
-            }
-
-            h1::after {
-                content: '';
-                position: absolute;
-                bottom: -10px; left: 50%;
-                transform: translateX(-50%);
-                width: 60px; height: 3px;
-                background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b);
-                box-shadow: 0 0 10px #ffd700;
-            }
+            h1 span.g { color: #00853F; }
+            h1 span.y { color: #cc9900; }
+            h1 span.r { color: #E31B23; }
 
             .subtitle {
-                color: #b8860b;
-                font-size: 16px;
-                margin-bottom: 35px;
-                letter-spacing: 3px;
-                text-transform: uppercase;
+                color: #666;
+                font-size: 13px;
+                margin-bottom: 30px;
+                letter-spacing: 1px;
             }
 
-            .input-group { margin-bottom: 25px; position: relative; }
+            .flag-star {
+                font-size: 22px;
+                margin-bottom: 20px;
+                display: block;
+            }
+
+            .input-group { margin-bottom: 20px; text-align: left; }
 
             .input-group label {
                 display: block;
-                text-align: left;
-                color: #ffd700;
+                color: #333;
+                font-weight: 600;
+                font-size: 13px;
                 margin-bottom: 8px;
-                font-weight: bold;
-                letter-spacing: 1px;
-                font-size: 14px;
             }
 
             .input-group input {
                 width: 100%;
-                padding: 18px 20px;
-                background: #0d0b00;
-                border: 2px solid #b8860b;
-                color: #ffd700;
-                border-radius: 15px;
-                font-size: 18px;
-                text-align: center;
+                padding: 14px 18px;
+                background: #f8f8f8;
+                border: 2px solid #ddd;
+                color: #222;
+                border-radius: 12px;
+                font-size: 16px;
                 outline: none;
-                font-family: 'Orbitron', monospace;
+                font-family: 'Poppins', sans-serif;
                 transition: all 0.3s ease;
             }
 
             .input-group input:focus {
-                border-color: #ffd700;
-                box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+                border-color: #00853F;
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(0, 133, 63, 0.15);
             }
 
-            .input-group input::placeholder { color: #4a3a00; font-size: 14px; }
+            .input-group input::placeholder { color: #aaa; }
 
-            /* ── BOUTON AVEC CLIGNOTEMENT DORÉ ── */
             button {
                 width: 100%;
-                padding: 18px;
-                background: linear-gradient(45deg, #b8860b, #ffd700, #daa520);
-                background-size: 200% 200%;
-                color: #0a0800;
+                padding: 15px;
+                background: linear-gradient(135deg, #00853F, #00a84f);
+                color: #fff;
                 border: none;
-                border-radius: 15px;
-                font-weight: bold;
+                border-radius: 12px;
+                font-weight: 700;
                 cursor: pointer;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 14px;
+                font-family: 'Poppins', sans-serif;
+                font-size: 16px;
                 letter-spacing: 1px;
-                white-space: nowrap;
                 transition: 0.3s;
                 position: relative;
                 overflow: hidden;
-                animation: btnGlow 1.5s ease-in-out infinite, gradientShift 3s ease infinite;
             }
 
-            @keyframes gradientShift {
-                0% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
-            }
-
-            @keyframes btnGlow {
-                0%, 100% {
-                    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4),
-                                0 0 20px rgba(255, 215, 0, 0.2),
-                                inset 0 0 10px rgba(255, 255, 255, 0.1);
-                }
-                50% {
-                    box-shadow: 0 0 30px rgba(255, 215, 0, 0.9),
-                                0 0 60px rgba(255, 215, 0, 0.5),
-                                inset 0 0 20px rgba(255, 255, 255, 0.3);
-                }
-            }
-
-            /* Effet eau à l'intérieur du bouton */
-            button::before {
+            button::after {
                 content: '';
                 position: absolute;
-                top: -50%; left: -60%;
-                width: 40%; height: 200%;
-                background: linear-gradient(
-                    105deg,
-                    transparent 20%,
-                    rgba(255, 255, 200, 0.5) 50%,
-                    transparent 80%
-                );
-                animation: waterFlow 2s linear infinite;
+                top: 0; left: -100%;
+                width: 60%; height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                animation: shine 2s linear infinite;
             }
 
-            @keyframes waterFlow {
-                0% { left: -60%; }
-                100% { left: 120%; }
+            @keyframes shine {
+                0% { left: -100%; }
+                100% { left: 150%; }
             }
 
             button:hover {
-                transform: translateY(-3px);
-                filter: brightness(1.2);
+                background: linear-gradient(135deg, #006830, #00853F);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 133, 63, 0.4);
             }
 
             button:disabled {
-                background: #2a2000;
-                color: #4a3a00;
+                background: #ccc;
                 cursor: not-allowed;
                 transform: none;
-                animation: none;
                 box-shadow: none;
             }
-
-            button:disabled::before { display: none; }
+            button:disabled::after { display: none; }
 
             #loading { margin: 20px 0; display: none; }
 
             .loader {
                 display: inline-block;
-                width: 30px; height: 30px;
-                border: 3px solid #2a2000;
-                border-top: 3px solid #ffd700;
+                width: 32px; height: 32px;
+                border: 3px solid #eee;
+                border-top: 3px solid #00853F;
                 border-radius: 50%;
-                animation: spin 1s linear infinite;
+                animation: spin 0.8s linear infinite;
             }
 
             .loading-text {
-                color: #ffd700;
+                color: #00853F;
                 margin-top: 10px;
-                font-weight: bold;
-                animation: pulse 1.5s infinite;
-            }
-
-            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-            #res {
-                margin-top: 25px;
-                font-size: 36px;
-                font-family: 'Orbitron', monospace;
-                color: #ffd700;
-                padding: 25px;
-                border: 3px solid #ffd700;
-                display: none;
-                border-radius: 20px;
-                cursor: pointer;
-                background: linear-gradient(45deg, #0d0b00, #1a1400);
-                letter-spacing: 6px;
-                font-weight: bold;
-                text-shadow: 0 0 15px #ffd700;
-                transition: 0.3s;
-                position: relative;
-                animation: resPulse 2s infinite;
-            }
-
-            @keyframes resPulse {
-                0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-                50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); }
-            }
-
-            #res:hover { transform: scale(1.05); }
-
-            #res::before {
-                content: '📋 CLICK TO COPY';
-                position: absolute;
-                top: -20px; left: 50%;
-                transform: translateX(-50%);
-                font-size: 12px;
-                color: #ffd700;
-                background: #0a0800;
-                padding: 5px 10px;
-                border-radius: 10px;
-                border: 1px solid #ffd700;
-                opacity: 0;
-                transition: 0.3s;
-                white-space: nowrap;
-            }
-
-            #res:hover::before { opacity: 1; top: -30px; }
-
-            .stats {
-                margin-top: 20px;
-                display: flex;
-                justify-content: center;
-                gap: 30px;
-                color: #4a3a00;
+                font-weight: 600;
                 font-size: 14px;
             }
 
-            .stats span { color: #ffd700; font-weight: bold; }
+            @keyframes spin { to { transform: rotate(360deg); } }
+
+            #res {
+                margin-top: 20px;
+                font-size: 28px;
+                font-family: 'Poppins', monospace;
+                font-weight: 700;
+                color: #1a1a1a;
+                padding: 20px;
+                border: 3px dashed #00853F;
+                display: none;
+                border-radius: 16px;
+                cursor: pointer;
+                background: #f0faf4;
+                letter-spacing: 6px;
+                transition: 0.2s;
+            }
+
+            #res:hover {
+                background: #e0f5ea;
+                transform: scale(1.02);
+            }
+
+            .copy-hint {
+                font-size: 12px;
+                color: #00853F;
+                margin-top: 6px;
+                display: none;
+                font-weight: 600;
+            }
+
+            .divider {
+                height: 1px;
+                background: linear-gradient(90deg, #00853F, #FDEF42, #E31B23);
+                margin: 25px 0;
+                border-radius: 10px;
+            }
+
+            .stats {
+                display: flex;
+                justify-content: center;
+                gap: 30px;
+                font-size: 14px;
+                color: #555;
+                font-weight: 600;
+            }
+
+            .stats .dot {
+                display: inline-block;
+                width: 10px; height: 10px;
+                border-radius: 50%;
+                margin-right: 6px;
+            }
+            .dot.green  { background: #00853F; }
+            .dot.yellow { background: #cc9900; }
 
             .footer {
                 margin-top: 20px;
-                color: #4a3a00;
-                font-size: 12px;
-                text-transform: uppercase;
-                letter-spacing: 2px;
+                color: #aaa;
+                font-size: 11px;
+                letter-spacing: 1px;
             }
         </style>
     </head>
     <body>
-        <canvas id="hackerCanvas"></canvas>
+        <div class="bg-flag">
+            <div class="stripe green"></div>
+            <div class="stripe yellow"></div>
+            <div class="stripe red"></div>
+        </div>
 
         <div class="container">
             <div class="box">
-                <h1>𝙼𝙰𝚁𝙸𝙰 𝚇𝙳</h1>
-                <div class="subtitle">𝙱𝙾𝚃 𝙿𝙰𝙸𝚁𝙸𝙽𝙶 𝙱𝚈 𝙳𝙴𝚅 𝚂𝙷𝙰𝙳𝙾𝚆🇸🇳</div>
+                <div class="tricolor">
+                    <div class="g"></div>
+                    <div class="y"></div>
+                    <div class="r"></div>
+                </div>
+
+                <span class="flag-star">⭐</span>
+                <h1><span class="g">MINI</span> <span class="y">BOT</span> <span class="r">DEV SHADOW</span></h1>
+                <div class="subtitle">BOT PAIRING BY DEV SHADOW 🇸🇳</div>
+
                 <div class="input-group">
-                    <label>📱 NUMÉRO WHATSAPP</label>
+                    <label>📱 Numéro WhatsApp</label>
                     <input type="text" id="num" placeholder="Ex: 221XXXXXXXX" maxlength="15">
                 </div>
-                <button id="btn" onclick="connect()">
-                    <span>⚡ GÉNÉRER LE CODE ⚡</span>
-                </button>
+
+                <button id="btn" onclick="connect()">⚡ GÉNÉRER LE CODE ⚡</button>
+
                 <div id="loading">
                     <div class="loader"></div>
-                    <div class="loading-text">CRYPTAGE EN COURS...</div>
+                    <div class="loading-text">Génération en cours...</div>
                 </div>
+
                 <div id="res" onclick="copyCode()"></div>
+                <div class="copy-hint" id="copyHint">👆 Appuyez pour copier</div>
+
+                <div class="divider"></div>
+
                 <div class="stats">
-                    <div>🟢 <span>ONLINE</span></div>
-                    <div>🟡 <span id="sessionCount">0</span> SESSIONS</div>
+                    <div><span class="dot green"></span>ONLINE</div>
+                    <div><span class="dot yellow"></span><span id="sessionCount">0</span> SESSIONS</div>
                 </div>
+
                 <div class="footer">⚡ MINI DEV SHADOW SYSTEM V2.0 ⚡</div>
             </div>
         </div>
 
         <script>
-            // ── ARRIÈRE PLAN HACKER DORÉ ──
-            const canvas = document.getElementById('hackerCanvas');
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            window.addEventListener('resize', () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                initColumns();
-            });
-
-            const chars = '01アイウエオカキクケコサシスセソタチツテトABCDEF0123456789$#@%&*';
-            const fontSize = 16;
-            let columns = [];
-
-            function initColumns() {
-                const count = Math.floor(canvas.width / fontSize);
-                columns = Array.from({ length: count }, () => Math.random() * canvas.height / fontSize);
-            }
-
-            initColumns();
-
-            function drawMatrix() {
-                ctx.fillStyle = 'rgba(10, 8, 0, 0.05)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                columns.forEach((y, i) => {
-                    const char = chars[Math.floor(Math.random() * chars.length)];
-                    const x = i * fontSize;
-
-                    // Dégradé doré : certains caractères plus brillants
-                    const brightness = Math.random();
-                    if (brightness > 0.95) {
-                        ctx.fillStyle = '#ffffff';
-                    } else if (brightness > 0.8) {
-                        ctx.fillStyle = '#ffd700';
-                    } else if (brightness > 0.5) {
-                        ctx.fillStyle = '#b8860b';
-                    } else {
-                        ctx.fillStyle = '#4a3a00';
-                    }
-
-                    ctx.font = fontSize + 'px Orbitron, monospace';
-                    ctx.fillText(char, x, y * fontSize);
-
-                    if (y * fontSize > canvas.height && Math.random() > 0.975) {
-                        columns[i] = 0;
-                    } else {
-                        columns[i] = y + 1;
-                    }
-                });
-            }
-
-            setInterval(drawMatrix, 50);
-
-            // ── FONCTIONS BOT ──
             async function updateSessionCount() {
                 try {
                     const response = await fetch('/sessions/count');
@@ -526,7 +440,6 @@ app.get("/", (req, res) => {
                     document.getElementById('sessionCount').textContent = data.count || 0;
                 } catch(e) {}
             }
-
             setInterval(updateSessionCount, 5000);
             updateSessionCount();
 
@@ -535,18 +448,24 @@ app.get("/", (req, res) => {
                 const resBox = document.getElementById('res');
                 const btn = document.getElementById('btn');
                 const loading = document.getElementById('loading');
+                const copyHint = document.getElementById('copyHint');
+
                 if(!num) { alert('❌ Entrez un numéro valide !'); return; }
                 if(num.length < 10) { alert('❌ Numéro trop court !'); return; }
+
                 btn.disabled = true;
                 resBox.style.display = "none";
+                copyHint.style.display = "none";
                 loading.style.display = "block";
+
                 try {
                     const response = await fetch('/pair?number=' + num);
                     const data = await response.json();
                     loading.style.display = "none";
                     if(data.code) {
                         resBox.style.display = "block";
-                        resBox.innerText = data.code.match(/.{1,3}/g).join('-');
+                        copyHint.style.display = "block";
+                        resBox.innerText = data.code;
                         btn.disabled = false;
                     } else {
                         alert('❌ ' + (data.error || "Erreur lors de la génération."));
@@ -560,15 +479,15 @@ app.get("/", (req, res) => {
             }
 
             function copyCode() {
-                const code = document.getElementById('res').innerText.replace(/-/g, '');
+                const code = document.getElementById('res').innerText;
                 navigator.clipboard.writeText(code);
                 const resBox = document.getElementById('res');
-                resBox.style.transform = 'scale(0.95)';
-                setTimeout(() => { resBox.style.transform = 'scale(1)'; }, 200);
-                alert('✅ Code copié dans le presse-papier !');
+                resBox.style.background = '#d4f5e2';
+                setTimeout(() => { resBox.style.background = '#f0faf4'; }, 500);
+                alert('✅ Code copié !');
             }
 
-            document.getElementById('num').addEventListener('input', function(e) {
+            document.getElementById('num').addEventListener('input', function() {
                 this.value = this.value.replace(/[^0-9]/g, '');
             });
         </script>
