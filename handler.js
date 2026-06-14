@@ -12,70 +12,9 @@ import unmuteCommand from './commands/unmute.js';
 import { demoteCommand } from './commands/demote.js';
 import { promoteCommand } from './commands/promote.js';
 import { welcomeCommand, goodbyeCommand } from './commands/welcome.js';
-import { getMessageInfo, getUserPermissions } from './Utils/messageUtils.js';
+import { getMessageInfo, getGroupInfo, getUserPermissions } from './Utils/messageUtils.js';
 
 global.config = config;
-
-// ─── Cache groupMetadata (évite les appels réseau répétés) ───────────────────
-const groupCache = new Map();
-const GROUP_CACHE_TTL = 30000; // 30 secondes
-
-async function getGroupInfoCached(m, dvmsy) {
-    if (!m.key.remoteJid.endsWith('@g.us')) {
-        return { isGroup: false, isGroupAdmin: false, isBotAdmin: false };
-    }
-
-    const chatId = m.key.remoteJid;
-    const sender = m.key.participant || m.key.remoteJid;
-    const now = Date.now();
-
-    // Utiliser le cache si disponible et pas expiré
-    if (groupCache.has(chatId)) {
-        const cached = groupCache.get(chatId);
-        if (now - cached.time < GROUP_CACHE_TTL) {
-            const participants = cached.participants;
-            const botId = dvmsy.user.id.split(':')[0] + '@s.whatsapp.net';
-            const senderParticipant = participants.find(p => p.id === sender);
-            const botParticipant = participants.find(p => p.id === botId);
-            return {
-                isGroup: true,
-                isGroupAdmin: senderParticipant?.admin === 'admin' || senderParticipant?.admin === 'superadmin',
-                isBotAdmin: botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin',
-                groupName: cached.subject,
-                groupId: chatId,
-                participants,
-                groupAdmins: participants.filter(p => p.admin)
-            };
-        }
-    }
-
-    // Sinon appel réseau + mise en cache
-    try {
-        const groupMetadata = await dvmsy.groupMetadata(chatId);
-        const participants = groupMetadata.participants;
-        groupCache.set(chatId, {
-            time: now,
-            participants,
-            subject: groupMetadata.subject
-        });
-
-        const botId = dvmsy.user.id.split(':')[0] + '@s.whatsapp.net';
-        const senderParticipant = participants.find(p => p.id === sender);
-        const botParticipant = participants.find(p => p.id === botId);
-
-        return {
-            isGroup: true,
-            isGroupAdmin: senderParticipant?.admin === 'admin' || senderParticipant?.admin === 'superadmin',
-            isBotAdmin: botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin',
-            groupName: groupMetadata.subject,
-            groupId: chatId,
-            participants,
-            groupAdmins: participants.filter(p => p.admin)
-        };
-    } catch {
-        return { isGroup: false, isGroupAdmin: false, isBotAdmin: false };
-    }
-}
 
 export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options) {
     try {
@@ -84,20 +23,20 @@ export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options)
         const messageInfo = getMessageInfo(m, dvmsy);
         const { body, sender, pushName } = messageInfo;
 
-        // ✅ Antilink AVANT le préfixe mais SEULEMENT en groupe
+        // Détection antilink seulement en groupe
         if (messageInfo.isGroup) {
             handleLinkDetection({ ...m, ...messageInfo }, dvmsy).catch(() => {});
         }
 
-        // ✅ Vérification préfixe AVANT de charger les infos groupe (plus rapide)
+        // Vérification préfixe
         if (!body || !body.startsWith(config.PREFIX)) return;
 
         const args = body.slice(config.PREFIX.length).trim().split(/ +/);
         const command = args.shift().toLowerCase();
 
-        // ✅ Charger les infos groupe SEULEMENT si c'est une commande valide
+        // Charger infos groupe et permissions
+        const groupInfo = await getGroupInfo(m, dvmsy);
         const userPerms = getUserPermissions(sender, config.OWNERS);
-        const groupInfo = await getGroupInfoCached(m, dvmsy);
 
         const fullMessage = {
             ...m,
@@ -173,8 +112,6 @@ export default async function handlerCommand(dvmsy, m, msg, chatUpdate, options)
 
             case 'welcome':
                 await welcomeCommand(fullMessage, dvmsy);
-                // Invalider le cache après modification
-                groupCache.delete(m.key.remoteJid);
                 break;
 
             case 'goodbye':
