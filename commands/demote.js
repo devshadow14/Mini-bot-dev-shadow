@@ -3,6 +3,7 @@ export async function demoteCommand(m, dvmsy) {
     const sock = dvmsy;
     const chatId = m.key.remoteJid;
     const message = m;
+    const mentionedJids = m.msg?.contextInfo?.mentionedJid || [];
 
     if (!chatId.endsWith('@g.us')) {
         await sock.sendMessage(chatId, { text: 'This command can only be used in groups!' });
@@ -21,19 +22,22 @@ export async function demoteCommand(m, dvmsy) {
 
     let userToDemote = [];
 
-    if (m.msg?.contextInfo?.participant) {
+    if (mentionedJids && mentionedJids.length > 0) {
+        userToDemote = mentionedJids;
+    } else if (m.msg?.contextInfo?.participant) {
         userToDemote = [m.msg.contextInfo.participant];
     } else if (message.message?.extendedTextMessage?.contextInfo?.participant) {
         userToDemote = [message.message.extendedTextMessage.contextInfo.participant];
     }
 
     if (userToDemote.length === 0) {
-        await sock.sendMessage(chatId, { text: '❌ Error: Please reply to their message to demote!' });
+        await sock.sendMessage(chatId, { text: '❌ Error: Please mention the user or reply to their message to demote!' });
         return;
     }
 
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
         await sock.groupParticipantsUpdate(chatId, userToDemote, "demote");
 
         const usernames = userToDemote.map(jid => `@${jid.split('@')[0]}`);
