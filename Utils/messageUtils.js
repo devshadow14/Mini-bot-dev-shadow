@@ -38,25 +38,40 @@ export function getMessageInfo(m, dvmsy) {
 export async function getGroupInfo(m, dvmsy) {
     try {
         if (!m.key.remoteJid.endsWith('@g.us')) {
-            return { isGroup: false };
+            return { isGroup: false, isGroupAdmin: false, isBotAdmin: false };
         }
         
         const groupMetadata = await dvmsy.groupMetadata(m.key.remoteJid);
+        const participants = groupMetadata.participants;
+        const sender = m.key.participant || m.key.remoteJid;
+        const botId = dvmsy.user.id.split(':')[0] + '@s.whatsapp.net';
+
+        // Vérifier si l'envoyeur est admin
+        const senderParticipant = participants.find(p => p.id === sender);
+        const isGroupAdmin = senderParticipant?.admin === 'admin' || senderParticipant?.admin === 'superadmin';
+
+        // Vérifier si le bot est admin
+        const botParticipant = participants.find(p => p.id === botId);
+        const isBotAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+
         return {
             isGroup: true,
+            isGroupAdmin,
+            isBotAdmin,
             groupName: groupMetadata.subject,
             groupId: m.key.remoteJid,
-            participants: groupMetadata.participants,
-            groupAdmins: groupMetadata.participants.filter(p => p.admin)
+            participants,
+            groupAdmins: participants.filter(p => p.admin)
         };
     } catch (error) {
-        return { isGroup: false };
+        console.error('Erreur getGroupInfo:', error);
+        return { isGroup: false, isGroupAdmin: false, isBotAdmin: false };
     }
 }
 
 export function getUserPermissions(sender, owners = []) {
     return {
         isOwner: owners.includes(sender),
-        isAdmin: false // Sera défini dans la commande groupe
+        isAdmin: owners.includes(sender)
     };
 }
