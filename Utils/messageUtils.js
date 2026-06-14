@@ -44,14 +44,21 @@ export async function getGroupInfo(m, dvmsy) {
         const groupMetadata = await dvmsy.groupMetadata(m.key.remoteJid);
         const participants = groupMetadata.participants;
         const sender = m.key.participant || m.key.remoteJid;
-        const botId = dvmsy.user.id.split(':')[0] + '@s.whatsapp.net';
+
+        // ✅ Extraire le numéro du bot correctement
+        const rawBotId = dvmsy.user.id;
+        const botNumber = rawBotId.split(':')[0].split('@')[0];
+        const botId = botNumber + '@s.whatsapp.net';
 
         // Vérifier si l'envoyeur est admin
         const senderParticipant = participants.find(p => p.id === sender);
         const isGroupAdmin = senderParticipant?.admin === 'admin' || senderParticipant?.admin === 'superadmin';
 
-        // Vérifier si le bot est admin
-        const botParticipant = participants.find(p => p.id === botId);
+        // ✅ Vérifier le bot en comparant le numéro uniquement
+        const botParticipant = participants.find(p => {
+            const pNumber = p.id.split(':')[0].split('@')[0];
+            return pNumber === botNumber;
+        });
         const isBotAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
 
         return {
@@ -70,8 +77,11 @@ export async function getGroupInfo(m, dvmsy) {
 }
 
 export function getUserPermissions(sender, owners = []) {
+    // ✅ Comparer les numéros sans suffixe
+    const senderNumber = sender.split('@')[0];
+    const isOwner = owners.some(o => o.split('@')[0] === senderNumber);
     return {
-        isOwner: owners.includes(sender),
-        isAdmin: owners.includes(sender)
+        isOwner,
+        isAdmin: isOwner
     };
 }
