@@ -5,23 +5,26 @@ export default async function muteCommand(m, dvmsy) {
     const message = m;
     const durationInMinutes = m.args?.[0] ? parseInt(m.args[0]) : undefined;
 
-    if (!m.isBotAdmin) {
+    const isBotAdmin = m.isBotAdmin;
+    const isSenderAdmin = m.isGroupAdmin;
+
+    if (!isBotAdmin) {
         await sock.sendMessage(chatId, { text: 'Please make the bot an admin first.' }, { quoted: message });
         return;
     }
 
-    if (!m.isGroupAdmin && !m.isOwner) {
+    if (!isSenderAdmin && !m.isOwner) {
         await sock.sendMessage(chatId, { text: 'Only group admins can use the mute command.' }, { quoted: message });
         return;
     }
 
     try {
         await sock.groupSettingUpdate(chatId, 'announcement');
-        
+
         if (durationInMinutes !== undefined && durationInMinutes > 0) {
             const durationInMilliseconds = durationInMinutes * 60 * 1000;
             await sock.sendMessage(chatId, { text: `The group has been muted for ${durationInMinutes} minutes.` }, { quoted: message });
-            
+
             setTimeout(async () => {
                 try {
                     await sock.groupSettingUpdate(chatId, 'not_announcement');
