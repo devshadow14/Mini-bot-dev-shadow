@@ -2,14 +2,21 @@
 export default async function kickCommand(m, dvmsy) {
     const sock = dvmsy;
     const chatId = m.key.remoteJid;
+    const senderId = m.sender;
     const message = m;
+    const mentionedJids = m.msg?.contextInfo?.mentionedJid || [];
 
-    if (!m.isOwner) {
-        if (!m.isBotAdmin) {
+    const isOwner = m.isOwner;
+    if (!isOwner) {
+        const isSenderAdmin = m.isGroupAdmin;
+        const isBotAdmin = m.isBotAdmin;
+
+        if (!isBotAdmin) {
             await sock.sendMessage(chatId, { text: 'Please make the bot an admin first.' }, { quoted: message });
             return;
         }
-        if (!m.isGroupAdmin) {
+
+        if (!isSenderAdmin) {
             await sock.sendMessage(chatId, { text: 'Only group admins can use the kick command.' }, { quoted: message });
             return;
         }
@@ -17,19 +24,24 @@ export default async function kickCommand(m, dvmsy) {
 
     let usersToKick = [];
 
-    if (m.msg?.contextInfo?.participant) {
+    if (mentionedJids && mentionedJids.length > 0) {
+        usersToKick = mentionedJids;
+    } else if (m.msg?.contextInfo?.participant) {
         usersToKick = [m.msg.contextInfo.participant];
     } else if (message.message?.extendedTextMessage?.contextInfo?.participant) {
         usersToKick = [message.message.extendedTextMessage.contextInfo.participant];
     }
 
     if (usersToKick.length === 0) {
-        await sock.sendMessage(chatId, { text: 'Please reply to their message to kick!' }, { quoted: message });
+        await sock.sendMessage(chatId, {
+            text: 'Please mention the user or reply to their message to kick!'
+        }, { quoted: message });
         return;
     }
 
     const botId = sock.user?.id?.split(':')[0] + '@s.whatsapp.net';
-    if (usersToKick.includes(botId)) {
+
+    if (usersToKick.some(u => u === botId)) {
         await sock.sendMessage(chatId, { text: "I can't kick myself🤖" }, { quoted: message });
         return;
     }
